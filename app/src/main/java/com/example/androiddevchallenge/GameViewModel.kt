@@ -17,19 +17,21 @@ data class GameState(
 
 class GameViewModel() : ViewModel() {
     private val gameUniverse: Universe = Universe(boardSize)
-    val _gameStateflow = MutableStateFlow(GameState())
+    private val initialState = GameState()
+    val setupState = initialState.copy(cells = gameUniverse.setupNeighborsList(initialState.cells))
+
+    val _gameStateflow = MutableStateFlow(setupState)
 
     val gameStateflow: StateFlow<GameState> = _gameStateflow
 
     init {
-        gameUniverse.setupNeighborsList(_gameStateflow.value.cells)
     }
 
     fun start() {
         viewModelScope.launch {
             while (true) {
                 Log.v("Game", "evolve")
-                delay(3000)
+                delay(400)
                 evolve()
             }
         }
@@ -48,8 +50,10 @@ class GameViewModel() : ViewModel() {
         val cells = _gameStateflow.value.cells.copy {
             this[index] = this[index].toggle()
         }
+        val updatedNeighborList = gameUniverse.setupNeighborsList(cells)
+
         viewModelScope.launch {
-            _gameStateflow.emit(_gameStateflow.value.copy(cells = cells))
+            _gameStateflow.emit(_gameStateflow.value.copy(cells = updatedNeighborList))
         }
 
     }
@@ -58,7 +62,9 @@ class GameViewModel() : ViewModel() {
         viewModelScope.launch {
             val cells = _gameStateflow.value.cells
             val evolvedCells = gameUniverse.evolve(cells)
-            _gameStateflow.emit(_gameStateflow.value.copy(cells = evolvedCells))
+            val updatedNeighborList = gameUniverse.setupNeighborsList(evolvedCells)
+
+            _gameStateflow.emit(_gameStateflow.value.copy(cells = updatedNeighborList))
         }
     }
 

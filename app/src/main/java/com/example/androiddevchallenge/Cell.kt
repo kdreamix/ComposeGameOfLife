@@ -1,9 +1,10 @@
 package com.example.androiddevchallenge
 
 
-data class Cell(val isAlive: Boolean = false) {
-    val neighbors: MutableList<Cell> = arrayListOf()
-
+data class Cell(
+    val isAlive: Boolean = false,
+    val neighbors: List<Cell> = emptyList()
+) {
     fun evolve(livingNeighborsCount: Int = neighbors.count { it.isAlive }): Cell {
         return copy(
             isAlive = when (livingNeighborsCount) {

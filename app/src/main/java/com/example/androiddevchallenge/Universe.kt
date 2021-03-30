@@ -12,17 +12,17 @@ class Universe(val size: Int) {
         return cells.mapIndexed { i, cell -> cell.evolve(livingNeighborCounts[i]) }
     }
 
-    fun setupNeighborsList(list: List<Cell>) {
-        list.forEachIndexed { index, cell ->
-            cell.setupNeighbors(index, list)
+    fun setupNeighborsList(list: List<Cell>): List<Cell> {
+        return list.mapIndexed { index, cell ->
+            cell.copy(neighbors = setupNeighbors(index, list))
         }
     }
 
-    private fun Cell.setupNeighbors(index: Int, allCells: List<Cell>) {
-        neighborCoordinatesOf(index.toX(), index.toY())
+    private fun setupNeighbors(index: Int, allCells: List<Cell>): List<Cell> {
+        return neighborCoordinatesOf(index.toX(), index.toY())
             .filter { it.isInBounds() }
             .map { it.toIndex() }
-            .mapTo(neighbors) { allCells[it] }
+            .map { allCells[it] }
 
     }
 
