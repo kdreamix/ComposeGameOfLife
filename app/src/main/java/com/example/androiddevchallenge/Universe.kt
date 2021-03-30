@@ -1,11 +1,6 @@
 package com.example.androiddevchallenge
 
-class Universe(val size: Int) {
-
-//    init {
-//        cells.forEachIndexed { i, cell -> cell.setupNeighbors(i) }
-//    }
-
+class Universe(private val size: Int) {
 
     fun evolve(cells: List<Cell>): List<Cell> {
         val livingNeighborCounts = cells.map { cell -> cell.neighbors.count { it.isAlive } }
@@ -34,9 +29,9 @@ class Universe(val size: Int) {
     private fun Pair<Int, Int>.isInBounds() =
         !((first < 0).or(first >= size).or(second < 0).or(second >= size))
 
-    fun Pair<Int, Int>.toIndex() = second * size + first
-    fun Int.toX() = this % size
-    fun Int.toY() = this / size
+    private fun Pair<Int, Int>.toIndex() = second * size + first
+    private fun Int.toX() = this % size
+    private fun Int.toY() = this / size
 }
 
 //fun Universe.cellAt(x: Int, y: Int): Cell {

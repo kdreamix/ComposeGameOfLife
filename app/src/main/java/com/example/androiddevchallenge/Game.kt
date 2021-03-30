@@ -14,36 +14,39 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.androiddevchallenge.ui.theme.typography
 
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Game(gameViewModel: GameViewModel = viewModel()) {
 
-    val gameState: GameState by gameViewModel._gameStateflow.collectAsState(GameState())
+    val gameState: GameState by gameViewModel.gameStateflow.collectAsState(GameState())
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
+    Column(horizontalAlignment = Alignment.CenterHorizontally,modifier = Modifier.background(Color.Black)) {
+        Text(text = "Game of Life", style = typography.h3)
         LazyVerticalGrid(
             modifier = Modifier // 1
                 .fillMaxWidth()
+                .padding(16.dp)
                 .wrapContentHeight()
                 .background(Color.Black),
             cells = GridCells.Fixed(boardSize), // 2
         ) {
             items(count = boardSize * boardSize) { // 3
                 val color = if (gameState.cells[it].isAlive) {
-                    Color.Black
-                } else {
                     Color.White
+                } else {
+                    Color.Black
                 }
                 Box(
                     Modifier // 4
                         .aspectRatio(1f)
-                        .border(width = 2.dp, color = Color.Red)
+                        .border(2.dp,Color.White)
                         .background(color)
                         .clickable {
                             gameViewModel.toggle(it)
@@ -53,10 +56,28 @@ fun Game(gameViewModel: GameViewModel = viewModel()) {
         }
 
         Button(
-            modifier = Modifier.fillMaxWidth().background(Color.Cyan),
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.Cyan),
             onClick = { gameViewModel.start() }
         ) {
             Text(text = "Start")
+        }
+        Button(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.Cyan),
+            onClick = { gameViewModel.pauseResume() }
+        ) {
+            Text(text = "Pause")
+        }
+        Button(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.Cyan),
+            onClick = { gameViewModel.reset() }
+        ) {
+            Text(text = "Reset")
         }
     }
 

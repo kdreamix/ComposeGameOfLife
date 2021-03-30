@@ -3,6 +3,7 @@ package com.example.androiddevchallenge
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,34 +16,51 @@ data class GameState(
     val cells: List<Cell> = List(boardSize * boardSize) { Cell() },
 )
 
-class GameViewModel() : ViewModel() {
+class GameViewModel : ViewModel() {
     private val gameUniverse: Universe = Universe(boardSize)
     private val initialState = GameState()
-    val setupState = initialState.copy(cells = gameUniverse.setupNeighborsList(initialState.cells))
+    private val setupState =
+        initialState.copy(cells = gameUniverse.setupNeighborsList(initialState.cells))
 
-    val _gameStateflow = MutableStateFlow(setupState)
+    private val _gameStateflow = MutableStateFlow(setupState)
 
     val gameStateflow: StateFlow<GameState> = _gameStateflow
 
-    init {
-    }
-
-    fun start() {
-        viewModelScope.launch {
-            while (true) {
-                Log.v("Game", "evolve")
-                delay(400)
-                evolve()
-            }
+    private fun newRepeatJob() = viewModelScope.launch {
+        while (true) {
+            Log.v("Game", "evolve")
+            delay(400)
+            evolve()
         }
     }
 
-    fun stop() {
+    private lateinit var repeatJob: Job
 
+    fun start() {
+        if (_gameStateflow.value.isRunning) return
+        if (_gameStateflow.value.cells.isEmpty()) return
+        repeatJob = newRepeatJob()
+        repeatJob.start()
+    }
+
+    fun pauseResume() {
+        val gameState = _gameStateflow.value
+        if (gameState.isRunning) {
+            repeatJob.cancel()
+        } else {
+            repeatJob = newRepeatJob()
+            repeatJob.start()
+        }
+        viewModelScope.launch {
+            _gameStateflow.emit(gameState.copy(isRunning = !gameState.isRunning))
+        }
     }
 
     fun reset() {
-
+        repeatJob.cancel()
+        viewModelScope.launch {
+            _gameStateflow.emit(setupState)
+        }
     }
 
     fun toggle(index: Int) {
@@ -64,7 +82,13 @@ class GameViewModel() : ViewModel() {
             val evolvedCells = gameUniverse.evolve(cells)
             val updatedNeighborList = gameUniverse.setupNeighborsList(evolvedCells)
 
-            _gameStateflow.emit(_gameStateflow.value.copy(cells = updatedNeighborList))
+            // TODO make evolve encapsulate setup neighbors logic
+            _gameStateflow.emit(
+                _gameStateflow.value.copy(
+                    cells = updatedNeighborList,
+                    isRunning = true
+                )
+            )
         }
     }
 
