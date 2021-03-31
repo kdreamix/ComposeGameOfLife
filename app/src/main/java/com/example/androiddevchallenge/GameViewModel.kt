@@ -62,8 +62,7 @@ class GameViewModel : ViewModel() {
     fun reset() {
         repeatJob.cancel()
         viewModelScope.launch {
-            val updatedNeighborList = gameUniverse.setupNeighborsList(initialState.cells)
-            _gameStateflow.emit(initialState.copy(cells = updatedNeighborList))
+            _gameStateflow.emit(initialState)
         }
     }
 
@@ -72,10 +71,9 @@ class GameViewModel : ViewModel() {
         val cells = _gameStateflow.value.cells.copy {
             this[index] = this[index].toggle()
         }
-        val updatedNeighborList = gameUniverse.setupNeighborsList(cells)
 
         viewModelScope.launch {
-            _gameStateflow.emit(_gameStateflow.value.copy(cells = updatedNeighborList))
+            _gameStateflow.emit(_gameStateflow.value.copy(cells = cells))
         }
     }
 
@@ -92,10 +90,10 @@ class GameViewModel : ViewModel() {
             gameUniverse = Universe(patterns.boardSize)
             Log.v("Game","Universe size: ${gameUniverse.size}")
             val cells = patterns.data.map { Cell(isAlive = it == 1) }
-            val updatedNeighborList = gameUniverse.setupNeighborsList(cells)
+
             _gameStateflow.emit(
                 _gameStateflow.value.copy(
-                    cells = updatedNeighborList,
+                    cells = cells,
                     boardSize = patterns.boardSize
                 )
             )
@@ -106,12 +104,10 @@ class GameViewModel : ViewModel() {
         viewModelScope.launch {
             val cells = _gameStateflow.value.cells
             val evolvedCells = gameUniverse.evolve(cells)
-            val updatedNeighborList = gameUniverse.setupNeighborsList(evolvedCells)
 
-            // TODO make evolve encapsulate setup neighbors logic
             _gameStateflow.emit(
                 _gameStateflow.value.copy(
-                    cells = updatedNeighborList,
+                    cells = evolvedCells,
                     isRunning = true
                 )
             )

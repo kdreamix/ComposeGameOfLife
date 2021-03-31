@@ -3,13 +3,15 @@ package com.example.androiddevchallenge
 class Universe(val size: Int) {
 
     fun evolve(cells: List<Cell>): List<Cell> {
-        val livingNeighborCounts = cells.map { cell -> cell.neighbors.count { it.isAlive } }
+        val livingNeighborCounts = cells
+            .setupNeighborsList()
+            .map { cell -> cell.neighbors.count { it.isAlive } }
         return cells.mapIndexed { i, cell -> cell.evolve(livingNeighborCounts[i]) }
     }
 
-    fun setupNeighborsList(list: List<Cell>): List<Cell> {
-        return list.mapIndexed { index, cell ->
-            cell.copy(neighbors = setupNeighbors(index, list))
+    private fun List<Cell>.setupNeighborsList(): List<Cell> {
+        return mapIndexed { index, cell ->
+            cell.copy(neighbors = setupNeighbors(index, this))
         }
     }
 
