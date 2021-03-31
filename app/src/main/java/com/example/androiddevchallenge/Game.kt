@@ -9,12 +9,10 @@ import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.GridCells
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.Slider
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,7 +23,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.androiddevchallenge.data.Pattern
+import com.example.androiddevchallenge.data.blinker
 import com.example.androiddevchallenge.data.toad
+import com.example.androiddevchallenge.ui.HorizontalPatternsList
 import com.example.androiddevchallenge.ui.theme.typography
 
 
@@ -48,47 +49,80 @@ fun Game(gameViewModel: GameViewModel = viewModel()) {
         GameGrid(gameState, onBoxClick = {
             gameViewModel.toggle(it)
         })
-        Button(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.Cyan),
-            onClick = { gameViewModel.start() }
-        ) {
-            Text(text = "Start")
-        }
-        Button(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.Cyan),
-            onClick = { gameViewModel.pauseResume() }
-        ) {
-            Text(text = "Pause")
-        }
-        Button(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.Cyan),
-            onClick = { gameViewModel.reset() }
-        ) {
-            Text(text = "Reset")
-        }
-        Button(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.Cyan),
-            onClick = { gameViewModel.setPattern(toad) }
-        ) {
-            Text(text = "Toad")
-        }
-//        val frameRate: Long by remember { mutableStateOf() }
-        Slider(
-            value = gameState.frameRate.toFloat(),
-            onValueChange = { gameViewModel.onFrameRateChange(it.toLong()) },
-            valueRange = 200f..2000f
+
+        BottomPanel(
+            gameState = gameState,
+            onFrameRateChanged = { gameViewModel.onFrameRateChange(it) },
+            onGameReset = { gameViewModel.reset() },
+            onGameToggle = { gameViewModel.pauseResume() },
+            onGameStart = { gameViewModel.start() },
+            onPatternClick = { gameViewModel.setPattern(it) }
         )
+
     }
+}
 
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun BottomPanel(
+    gameState: GameState,
+    onFrameRateChanged: (Long) -> Unit,
+    onGameStart: () -> Unit,
+    onGameToggle: () -> Unit,
+    onGameReset: () -> Unit,
+    onPatternClick: (Pattern) -> Unit,
+) {
+    LazyColumn(
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+        stickyHeader {
+            Text(text = "Controls", style = typography.h5)
+        }
+        item {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedButton(
+                    onClick = { onGameStart() }
+                ) {
+                    Text(text = "Start")
+                }
+                OutlinedButton(
+                    onClick = { onGameToggle() }
+                ) {
+                    Text(text = "Pause/Resume")
+                }
+                OutlinedButton(
+                    onClick = { onGameReset() }
+                ) {
+                    Text(text = "Reset")
+                }
+            }
 
+        }
+        stickyHeader {
+            Text(text = "Patterns", style = typography.h5)
+        }
+        item {
+            HorizontalPatternsList(
+                patterns = listOf(blinker, toad),
+                onPatternClick = { onPatternClick(it) })
+        }
+
+        item {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "Frame rate")
+                Slider(
+                    value = gameState.frameRate.toFloat(),
+                    onValueChange = { onFrameRateChanged(it.toLong()) },
+                    valueRange = 200f..2000f
+                )
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -102,7 +136,6 @@ fun GameGrid(gameState: GameState, onBoxClick: (Int) -> Unit) {
         scale *= zoomChange
         offset += offsetChange
     }
-    Text(text = "Game of Life", style = typography.h3, color = Color.White)
     LazyVerticalGrid(
         modifier = Modifier
             // apply other transformations like rotation and zoom on the pizza slice emoji
