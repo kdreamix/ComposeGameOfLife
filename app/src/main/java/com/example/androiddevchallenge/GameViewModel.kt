@@ -3,33 +3,36 @@ package com.example.androiddevchallenge
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.androiddevchallenge.data.Pattern
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-const val boardSize = 10
+const val INIT_BOARD_SIZE = 10
 
 data class GameState(
+    val boardSize: Int = INIT_BOARD_SIZE,
     val isRunning: Boolean = false,
-    val cells: List<Cell> = List(boardSize * boardSize) { Cell() },
+    val cells: List<Cell> = List(INIT_BOARD_SIZE * INIT_BOARD_SIZE) { Cell() },
+    val frameRate: Long = 400,
 )
 
 class GameViewModel : ViewModel() {
-    private val gameUniverse: Universe = Universe(boardSize)
+    private var gameUniverse: Universe = Universe(INIT_BOARD_SIZE)
     private val initialState = GameState()
-    private val setupState =
-        initialState.copy(cells = gameUniverse.setupNeighborsList(initialState.cells))
-
-    private val _gameStateflow = MutableStateFlow(setupState)
+    private val _gameStateflow = MutableStateFlow(initialState)
 
     val gameStateflow: StateFlow<GameState> = _gameStateflow
 
     private fun newRepeatJob() = viewModelScope.launch {
         while (true) {
+            if (_gameStateflow.value.cells.isEmpty()) {
+                reset()
+            }
             Log.v("Game", "evolve")
-            delay(400)
+            delay(_gameStateflow.value.frameRate)
             evolve()
         }
     }
@@ -59,7 +62,8 @@ class GameViewModel : ViewModel() {
     fun reset() {
         repeatJob.cancel()
         viewModelScope.launch {
-            _gameStateflow.emit(setupState)
+            val updatedNeighborList = gameUniverse.setupNeighborsList(initialState.cells)
+            _gameStateflow.emit(initialState.copy(cells = updatedNeighborList))
         }
     }
 
@@ -73,7 +77,29 @@ class GameViewModel : ViewModel() {
         viewModelScope.launch {
             _gameStateflow.emit(_gameStateflow.value.copy(cells = updatedNeighborList))
         }
+    }
 
+    fun onFrameRateChange(newFrameRate: Long) {
+        if (newFrameRate == 0L) return
+        viewModelScope.launch {
+            _gameStateflow.emit(_gameStateflow.value.copy(frameRate = newFrameRate))
+        }
+    }
+
+    fun setPattern(patterns: Pattern) {
+        Log.v("Game", "Update pattern")
+        viewModelScope.launch {
+            gameUniverse = Universe(patterns.boardSize)
+            Log.v("Game","Universe size: ${gameUniverse.size}")
+            val cells = patterns.data.map { Cell(isAlive = it == 1) }
+            val updatedNeighborList = gameUniverse.setupNeighborsList(cells)
+            _gameStateflow.emit(
+                _gameStateflow.value.copy(
+                    cells = updatedNeighborList,
+                    boardSize = patterns.boardSize
+                )
+            )
+        }
     }
 
     private fun evolve() {

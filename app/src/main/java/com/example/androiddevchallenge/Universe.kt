@@ -1,6 +1,6 @@
 package com.example.androiddevchallenge
 
-class Universe(private val size: Int) {
+class Universe(val size: Int) {
 
     fun evolve(cells: List<Cell>): List<Cell> {
         val livingNeighborCounts = cells.map { cell -> cell.neighbors.count { it.isAlive } }
