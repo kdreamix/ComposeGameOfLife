@@ -1,7 +1,5 @@
 # Game of life compose
 
-![Workflow result](https://github.com/kdreamix/ComposeGameOfLife/workflows/Check/badge.svg)
-
 ## :scroll: Description
 A game of life implemented in Jetpack Compose.
 Game logic implementation is from ![a11n](https://github.com/a11n/kotlin-game-of-life).
