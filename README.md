@@ -10,4 +10,5 @@ Game logic implementation is from ![a11n](https://github.com/a11n/kotlin-game-of
 ## Todo
 - [ ] Support large number of cells
 - [ ] Only checks live cells neighbor using quad-tree 
+- [ ] Support file importing (.RLE extension)
 
