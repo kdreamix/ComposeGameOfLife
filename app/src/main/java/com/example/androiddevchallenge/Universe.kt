@@ -24,8 +24,8 @@ class Universe(val size: Int) {
     }
 
     private fun neighborCoordinatesOf(x: Int, y: Int) = arrayOf(
-        Pair(x - 1, y - 1), Pair(x, y - 1), Pair(x + 1, y - 1), Pair(x - 1, y),
-        Pair(x + 1, y), Pair(x - 1, y + 1), Pair(x, y + 1), Pair(x + 1, y + 1)
+        x - 1 to y - 1, x to y - 1, x + 1 to y - 1, x - 1 to y,
+        x + 1 to y, x - 1 to y + 1, x to y + 1, x + 1 to y + 1
     )
 
     private fun Pair<Int, Int>.isInBounds() =

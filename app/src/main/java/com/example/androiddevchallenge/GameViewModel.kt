@@ -15,7 +15,7 @@ const val INIT_BOARD_SIZE = 10
 data class GameState(
     val boardSize: Int = INIT_BOARD_SIZE,
     val isRunning: Boolean = false,
-    val cells: List<Cell> = List(INIT_BOARD_SIZE * INIT_BOARD_SIZE) { Cell() },
+    val cells: List<Cell> = List(boardSize * boardSize) { Cell() },
     val frameRate: Long = 400,
 )
 
@@ -88,13 +88,26 @@ class GameViewModel : ViewModel() {
         Log.v("Game", "Update pattern")
         viewModelScope.launch {
             gameUniverse = Universe(patterns.boardSize)
-            Log.v("Game","Universe size: ${gameUniverse.size}")
+            Log.v("Game", "Universe size: ${gameUniverse.size}")
             val cells = patterns.data.map { Cell(isAlive = it == 1) }
 
             _gameStateflow.emit(
                 _gameStateflow.value.copy(
                     cells = cells,
                     boardSize = patterns.boardSize
+                )
+            )
+        }
+    }
+
+    fun setBoardSize(boardSize: Int) {
+        viewModelScope.launch {
+            gameUniverse = Universe(boardSize)
+            Log.v("Game", "Universe size: ${gameUniverse.size}")
+            _gameStateflow.emit(
+                _gameStateflow.value.copy(
+                    cells = List(boardSize * boardSize) { Cell() },
+                    boardSize = boardSize
                 )
             )
         }

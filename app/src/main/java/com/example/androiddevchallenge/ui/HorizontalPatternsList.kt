@@ -19,7 +19,6 @@ import com.example.androiddevchallenge.data.Pattern
 @Composable
 fun HorizontalPatternsList(patterns: List<Pattern>, onPatternClick: (Pattern) -> Unit) {
     LazyRow(
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(patterns) { pattern ->

@@ -53,6 +53,7 @@ fun Game(gameViewModel: GameViewModel = viewModel()) {
         BottomPanel(
             gameState = gameState,
             onFrameRateChanged = { gameViewModel.onFrameRateChange(it) },
+            onBoardSizeChange = { gameViewModel.setBoardSize(it) },
             onGameReset = { gameViewModel.reset() },
             onGameToggle = { gameViewModel.pauseResume() },
             onGameStart = { gameViewModel.start() },
@@ -67,15 +68,16 @@ fun Game(gameViewModel: GameViewModel = viewModel()) {
 fun BottomPanel(
     gameState: GameState,
     onFrameRateChanged: (Long) -> Unit,
+    onBoardSizeChange: (Int) -> Unit,
     onGameStart: () -> Unit,
     onGameToggle: () -> Unit,
     onGameReset: () -> Unit,
     onPatternClick: (Pattern) -> Unit,
 ) {
     LazyColumn(
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
         stickyHeader {
             Text(text = "Controls", style = typography.h5)
         }
@@ -103,24 +105,37 @@ fun BottomPanel(
             }
 
         }
-        stickyHeader {
-            Text(text = "Patterns", style = typography.h5)
-        }
-        item {
-            HorizontalPatternsList(
-                patterns = listOf(blinker, toad),
-                onPatternClick = { onPatternClick(it) })
-        }
 
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "Frame rate")
+                Text(text = "Interval")
                 Slider(
                     value = gameState.frameRate.toFloat(),
                     onValueChange = { onFrameRateChanged(it.toLong()) },
                     valueRange = 200f..2000f
                 )
             }
+        }
+
+        item {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "Board size")
+                Slider(
+                    value = gameState.boardSize.toFloat(),
+                    onValueChange = { onBoardSizeChange(it.toInt()) },
+                    valueRange = 10f..30f
+                )
+            }
+        }
+
+        stickyHeader {
+            Text(text = "Patterns", style = typography.h5)
+        }
+
+        item {
+            HorizontalPatternsList(
+                patterns = listOf(blinker, toad),
+                onPatternClick = { onPatternClick(it) })
         }
     }
 }
